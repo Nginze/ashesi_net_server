@@ -44,12 +44,12 @@ def signup():
 
     password_hash = generate_password_hash(password=password, method='sha256')
     me = User(
-        student_id = student_id,
+        student_id=student_id,
         email_address=email_address,
         username=username,
         password_hash=password_hash,
-        avatar_url = 'https://cdn.dribbble.com/users/6142/screenshots/5679189/media/1b96ad1f07feee81fa83c877a1e350ce.png?compress=1&resize=400x300&vertical=top'
-        )
+        avatar_url='https://cdn.dribbble.com/users/6142/screenshots/5679189/media/1b96ad1f07feee81fa83c877a1e350ce.png?compress=1&resize=400x300&vertical=top'
+    )
     db.session.add(me)
     db.session.commit()
 
@@ -92,8 +92,8 @@ def auth_microsoft_callback():
 @auth.route('/user', methods=['GET'])
 def get_user():
     # print(to_json(current_user))
-    if(to_json(current_user) is None):
-        return {'msg': 'no user'}   
+    if (to_json(current_user) is None):
+        return {'msg': 'no user'}
     return to_json(current_user)
 
 

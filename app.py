@@ -10,8 +10,6 @@ from utils.utils import to_json
 from ws import socketio
 from flask_cors import CORS
 import os
-# from models.user.user_model import User
-# from models.post.post_model import Post
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = config.DATABASE_URI
@@ -26,7 +24,8 @@ CORS(app, supports_credentials=True, resources={
 
 db.init_app(app)
 login_manager.init_app(app)
-socketio.init_app(app, cors_allowed_origins =["https://ashesi-network.netlify.app"])
+socketio.init_app(app, cors_allowed_origins=[
+                  "https://ashesi-network.netlify.app"])
 Migrate(app, db)
 
 

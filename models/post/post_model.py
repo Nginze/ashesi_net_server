@@ -12,8 +12,7 @@ class Post(db.Model):
     content = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     author_id = db.Column(UUID(as_uuid=True), db.ForeignKey('user.user_id'))
-   
-    
+
     # relationships
 
     comments = db.relationship('Comment', backref='post', lazy=True)
@@ -30,15 +29,3 @@ class Comment(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
-# class Saved(db.Model):
-#     saver_id = db.Column(UUID(as_uuid=True), db.ForeignKey('user.user_id'))
-#     post_id = db.Column(UUID(as_uuid=True), db.ForeignKey('post.post_id'))
-#     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-
-# class Liked(db.Model):
-#     creator_id = db.Column(UUID(as_uuid=True), db.ForeignKey('user.user_id'))
-#     post_id = db.Column(UUID(as_uuid=True), db.ForeignKey('post.post_id'))
-#     comment_id = db.Column(
-#         UUID(as_uuid=True), db.ForeignKey('comment.comment_id'))
-#     created_at = db.Column(db.DateTime, default=datetime.utcnow)

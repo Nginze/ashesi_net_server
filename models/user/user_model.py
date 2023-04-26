@@ -21,13 +21,13 @@ class User(db.Model, UserMixin):
 
     # new fields
     student_id = db.Column(db.String)
-    favorite_food= db.Column(db.String)
-    favorite_movie= db.Column(db.String)
+    favorite_food = db.Column(db.String)
+    favorite_movie = db.Column(db.String)
     year_group = db.Column(db.String)
     major = db.Column(db.String)
     residency = db.Column(db.String)
     date_of_birth = db.Column(db.String)
-    
+
     # relationships
     posts = db.relationship('Post', backref='author', lazy=False)
     comments = db.relationship('Comment', backref='author')

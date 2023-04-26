@@ -32,11 +32,7 @@ def to_json(obj):
             else:
                 data[column.name] = value
         return data
-    # else:
-    #     return {}
-        # raise TypeError(
-        #     "Object of type '%s' is not JSON serializable" %
-        #     type(obj).__name__)
+
 
 def upload_image(image_bytes):
     image_bytes = b''.join([bytes([x]) for x in image_bytes])

@@ -9,19 +9,23 @@ from auth.manager import login_manager, current_user
 from utils.utils import to_json
 from ws import socketio
 from flask_cors import CORS
-# from models.user.user_model import User
-# from models.post.post_model import Post
+import os
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = config.DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SESSION_COOKIE_SAMESITE'] = 'None'
+app.config['SESSION_COOKIE_SECURE'] = True
 app.secret_key = 'super secret key'
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'key.json'
+
 CORS(app, supports_credentials=True, resources={
-     r"/*": {"origins": "http://localhost:3000"}})
+     r"/*": {"origins": "https://ashesi-network.netlify.app"}})
 
 db.init_app(app)
 login_manager.init_app(app)
-socketio.init_app(app, cors_allowed_origins =["http://localhost:3000"])
+socketio.init_app(app, cors_allowed_origins=[
+                  "https://ashesi-network.netlify.app"])
 Migrate(app, db)
 
 
@@ -34,5 +38,7 @@ app.register_blueprint(auth, url_prefix="/auth")
 app.register_blueprint(_user, url_prefix="/users")
 app.register_blueprint(post, url_prefix="/posts")
 
+
 if __name__ == "__main__":
-    socketio.run(app, debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    socketio.run(app, debug=True, host='0.0.0.0', port=port)

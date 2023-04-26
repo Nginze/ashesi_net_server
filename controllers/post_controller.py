@@ -17,16 +17,15 @@ import json
 post = Blueprint('post', __name__)
 
 
-
 @post.route("/", methods=["POST"])
 def create_post():
     req = json.loads(request.data)
-    
+
     content = req.get('content')
     media_content = req.get('media_content')
-    author_id = session.get('_user_id') 
+    author_id = session.get('_user_id')
 
-    if(media_content):
+    if (media_content):
         blob = upload_image(media_content)
         post = Post(
             # title=title,
@@ -42,19 +41,18 @@ def create_post():
 
     db.session.add(post)
     db.session.commit()
-    
-    
-    #Query Created Post 
-    
+
+    # Query Created Post
+
     cur = conn.cursor()
     query = f'''
-                SELECT post.post_id, post.media_url, post.title, post.content, post.created_at, "user".avatar_url, "user".username, "user".user_id, 
+                SELECT post.post_id, post.media_url, post.title, post.content, post.created_at, "user".avatar_url, "user".username, "user".user_id,
                     (select count(*) from likes where post_id = post.post_id) as like_count,
                     (SELECT COUNT(*) FROM comment WHERE post_id = post.post_id) AS comment_count,
-                    CASE WHEN l.creator_id IS NOT NULL THEN true ELSE false END AS liked, 
+                    CASE WHEN l.creator_id IS NOT NULL THEN true ELSE false END AS liked,
                     CASE WHEN s.saver_id IS NOT NULL THEN true ELSE false END AS saved
-                FROM post 
-                JOIN "user" ON post.author_id = "user".user_id 
+                FROM post
+                JOIN "user" ON post.author_id = "user".user_id
                 LEFT JOIN likes l ON post.post_id = l.post_id AND l.creator_id = '{author_id}'
                 LEFT JOIN saves s ON post.post_id = s.post_id AND s.saver_id = '{author_id}'
                 WHERE post.post_id = '{post.post_id}'
@@ -79,7 +77,7 @@ def create_post():
         'has_liked': row[10],
         'has_saved': row[11]
     }
-    
+
     cur.close()
 
     return post
@@ -91,13 +89,13 @@ def retreive_post(post_id):
     try:
         cur = conn.cursor()
         query = f'''
-                    SELECT post.post_id, post.media_url, post.title, post.content, post.created_at, "user".avatar_url, "user".username, "user".user_id, 
+                    SELECT post.post_id, post.media_url, post.title, post.content, post.created_at, "user".avatar_url, "user".username, "user".user_id,
                         (select count(*) from likes where post_id = post.post_id) as like_count,
                         (SELECT COUNT(*) FROM comment WHERE post_id = post.post_id) AS comment_count,
-                        CASE WHEN l.creator_id IS NOT NULL THEN true ELSE false END AS liked, 
+                        CASE WHEN l.creator_id IS NOT NULL THEN true ELSE false END AS liked,
                         CASE WHEN s.saver_id IS NOT NULL THEN true ELSE false END AS saved
-                    FROM post 
-                    JOIN "user" ON post.author_id = "user".user_id 
+                    FROM post
+                    JOIN "user" ON post.author_id = "user".user_id
                     LEFT JOIN likes l ON post.post_id = l.post_id AND l.creator_id = '{user_id}'
                     LEFT JOIN saves s ON post.post_id = s.post_id AND s.saver_id = '{user_id}'
                     WHERE post.post_id = '{post_id}'
@@ -128,8 +126,6 @@ def retreive_post(post_id):
         conn.rollback()
     finally:
         cur.close()
-    # post_alchemy = Post.query.filter_by(post_id=post_id).one()
-    # post_comment_count = len(post.comments) 
 
 
 @post.route("/<post_id>", methods=["DELETE"])
@@ -176,12 +172,6 @@ def create_save(post_id):
 @post.route("/<post_id>/unsave", methods=["DELETE"])
 def delete_save(post_id):
     saver_id = session.get("_user_id")
-    # cur = conn.cursor
-    # query = f'''
-    #     DELETE FROM saves where saver_id = CAST({saver_id} as UUID) and post_id = CAST({post_id} as UUID);
-    # '''
-    # cur.execute(query)
-    # cur.close()
     save = saves.delete().where(
         (saves.c.saver_id == saver_id) &
         (saves.c.post_id == post_id)
@@ -234,7 +224,7 @@ LEFT JOIN (
 ) r ON c.comment_id = r.parent_id
 WHERE c.post_id = '{post_id}' AND c.parent_id IS NULL
 ORDER BY c.created_at DESC
-OFFSET {offset} LIMIT {limit}; 
+OFFSET {offset} LIMIT {limit};
     '''
     cur.execute(query)
     comments = []
@@ -253,37 +243,29 @@ OFFSET {offset} LIMIT {limit};
         }
         comments.append(comment_dict)
 
-    # comments = Comment.query.filter_by(
-    #     post_id=post_id).offset(offset).limit(limit).all()
     has_next = False if len(comments) < limit else True
-    # print(comments)
 
     cur.close()
-    
-    return {'data':comments, 'has_next': has_next,
+
+    return {'data': comments, 'has_next': has_next,
             'next_cursor': next_cursor}
 
 
 @post.route("/<post_id>/<comment_id>/reply/all", methods=["GET"])
 def retrieve_replies(post_id, comment_id):
-    # limit = 10
-    # cursor = int(request.args.get('cursor'))
-    # offset = cursor * limit
-
-    # next_cursor = cursor + 1
 
     cur = conn.cursor()
     query = f'''
 
-    SELECT 
-    comment.comment_id, 
-    comment.content, 
-    comment.created_at, 
-    "user".avatar_url, 
-    "user".username, 
+    SELECT
+    comment.comment_id,
+    comment.content,
+    comment.created_at,
+    "user".avatar_url,
+    "user".username,
     "user".user_id,
     comment.post_id
-    FROM comment 
+    FROM comment
     JOIN "user" ON comment.author_id = "user".user_id
     WHERE comment.post_id = '{post_id}'and comment.parent_id = '{comment_id}'
     ORDER BY comment.created_at DESC
@@ -301,19 +283,16 @@ def retrieve_replies(post_id, comment_id):
                 'username': row[4],
                 'user_id': row[5],
             },
-            
+
             'reply_count': 0,
             'post_id': row[6]
         }
         comments.append(comment_dict)
 
-    # comments = Comment.query.filter_by(
-    #     post_id=post_id).offset(offset).limit(limit).all()
-    # print(comments)
-
     cur.close()
-    
-    return {'data':comments}
+
+    return {'data': comments}
+
 
 @post.route("/feed", methods=["GET"])
 def retrieve_feed():
@@ -329,13 +308,13 @@ def retrieve_feed():
     try:
         if (sorting_factor == "recent"):
             query = f'''
-                    SELECT post.post_id, post.media_url, post.title, post.content, post.created_at, "user".avatar_url, "user".username, "user".user_id, 
+                    SELECT post.post_id, post.media_url, post.title, post.content, post.created_at, "user".avatar_url, "user".username, "user".user_id,
                         (select count(*) from likes where post_id = post.post_id) as like_count,
                         (SELECT COUNT(*) FROM comment WHERE post_id = post.post_id) AS comment_count,
-                        CASE WHEN l.creator_id IS NOT NULL THEN true ELSE false END AS liked, 
+                        CASE WHEN l.creator_id IS NOT NULL THEN true ELSE false END AS liked,
                         CASE WHEN s.saver_id IS NOT NULL THEN true ELSE false END AS saved
-                    FROM post 
-                    JOIN "user" ON post.author_id = "user".user_id 
+                    FROM post
+                    JOIN "user" ON post.author_id = "user".user_id
                     LEFT JOIN likes l ON post.post_id = l.post_id AND l.creator_id = '{user_id}'
                     LEFT JOIN saves s ON post.post_id = s.post_id AND s.saver_id = '{user_id}'
                     ORDER BY post.created_at DESC
@@ -356,7 +335,7 @@ def retrieve_feed():
                         'user_id': row[7]
                     },
                     'likes_count': row[8],
-                    'comments_count': row[9], 
+                    'comments_count': row[9],
                     'has_liked': row[10],
                     'has_saved': row[11]
                 }
@@ -364,13 +343,11 @@ def retrieve_feed():
                 posts.append(post_dict)
 
             has_next = False if len(posts) < limit else True
-        
 
         elif (sorting_factor == "Top"):
             pass
 
-        
-        return {'data': posts , 'has_next': has_next,
+        return {'data': posts, 'has_next': has_next,
                 'next_cursor': next_cursor}
 
     except psycopg2.Error as e:
@@ -379,13 +356,13 @@ def retrieve_feed():
         return {'data': []}
     finally:
         cur.close()
-        # conn.close() 
+
 
 @post.route("/addFake", methods=["GET"])
 def add_fake():
 
     fake = Faker()
-
+    
     # Create 10 dummy posts
     for i in range(20):
         post = Post(
